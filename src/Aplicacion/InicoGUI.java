@@ -1,7 +1,5 @@
 package Aplicacion;
 
-import Utils.UsersControler;
-
 import javax.swing.*;
 import java.awt.*;
 public class InicoGUI {
@@ -34,26 +32,11 @@ public class InicoGUI {
 
         if (opcion == JOptionPane.OK_OPTION) {
             nombre = textField.getText();
-            UsersControler us = new UsersControler();
 
             if(!nombre.isEmpty() && !nombre.isBlank()){
-                if(us.esUsuarioValido(nombre)){
-                    us.conectarUsuario(nombre);
-                    new ChatGUI(nombre);
-                }else{
-                    int id = us.contarAnonimos();
-                    JOptionPane.showMessageDialog(panel, "Ese nombre no es valido, se entrara como: 'Anonimo'");
-                    String name = "Anonimo_" + (id + 1);
-                    us.conectarUsuario(name);
-                    new ChatGUI(name);
-                }
-
+                new ChatGUI(nombre);
             }else{
-                int id = us.contarAnonimos();
-                JOptionPane.showMessageDialog(panel, "No se ha introducido nombre, se entrara como: 'Anonimo'");
-                String name = "Anonimo_" + id;
-                us.conectarUsuario(name);
-                new ChatGUI(name);
+                JOptionPane.showMessageDialog(panel, "No se ha introducido nombre, no se puede conectar...");
             }
         }
     }

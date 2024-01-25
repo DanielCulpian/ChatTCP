@@ -1,7 +1,5 @@
 package Aplicacion;
 
-import Utils.UsersControler;
-
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
 
@@ -23,17 +22,20 @@ public class ChatGUI extends JFrame {
     private JButton sendBtn;
     private JTextArea chatArea;
     private JList userList;
+    private JScrollPane chatScrollPane;
     private JScrollPane chatScrollPanel;
     private String user;
     private PrintWriter out;
     private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 12345;
 
+    private List<String> conectedUsers = new LinkedList<>();
+    private Vector<String> ve;
+
 
     public ChatGUI(String user){
 
         this.user = user;
-        actualizarListaUsuarios();
 
         setTitle("Chat: " + user);
         setContentPane(mainPanel);
@@ -53,13 +55,31 @@ public class ChatGUI extends JFrame {
             Socket socket = new Socket(SERVER_IP, SERVER_PORT);
             out = new PrintWriter(socket.getOutputStream(), true);
 
+            conectarThis("c");
+
             new Thread(() -> {
                 try {
                     BufferedReader entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                     String linea;
-                    while ((linea = entrada.readLine()) != null) {
-                        chatArea.append(linea + "\n");
-                        actualizarListaUsuarios();
+                    if(entrada.ready()){
+                        while ((linea = entrada.readLine()) != null) {
+                            System.out.println(linea);
+                            if(linea.contains("user")){
+                                String[] partes = linea.split(":");
+                                if(linea.contains("duser")){
+                                    conectedUsers.remove(partes[1]);
+                                }else if(linea.contains("cuser")){
+                                    conectedUsers.add(partes[1]);
+                                }else{
+                                    chatArea.append(linea + "\n");
+                                }
+                                ve  = new Vector<>(conectedUsers);
+                                userList.setListData(ve);
+                            }else{
+                                chatArea.append(linea + "\n");
+                            }
+
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -69,7 +89,9 @@ public class ChatGUI extends JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
     }
+
 
     private void mandarMensaje() {
         String msg = this.textBox.getText();
@@ -79,19 +101,18 @@ public class ChatGUI extends JFrame {
         }
     }
 
-    public void actualizarListaUsuarios(){
-        UsersControler uc = new UsersControler();
-        List<String> conectedUsers = uc.leerUsuariosConectados();
-        Vector<String> ve = new Vector<>(conectedUsers);
-
-        userList.setListData(ve);
+    private void conectarThis(String tipo) {
+        if (!user.isEmpty() && !user.isBlank()) {
+            out.println(tipo+"user:"+user);
+            System.out.println(tipo+"user:"+user);
+        }
     }
 
     @Override
     public void dispose(){
-        UsersControler us = new UsersControler();
-        us.desconectarUsuario(user);
+        conectarThis("d");
 
         super.dispose();
+        System.exit(0);
     }
 }
