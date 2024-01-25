@@ -57,6 +57,7 @@ public class ChatGUI extends JFrame {
 
             conectarThis("c");
 
+
             new Thread(() -> {
                 try {
                     BufferedReader entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
