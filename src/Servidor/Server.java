@@ -7,10 +7,19 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+
+/**
+ * <b>Explicacion: </b> Tenemos el codigo del servidor y del hilo que va a asignar
+ * por cada cliente que acepte. <br/><br/>
+ *
+ * <b>Finalizacion: </b> Tener en cuenta, que el servidor se debe cerrar manualmente.
+ */
 
 public class Server{
     private List<hiloCliente> clientes;
+    private List<String> conectedUsers = new LinkedList<>();
 
     public Server() {
         clientes = new ArrayList<>();
@@ -24,8 +33,8 @@ public class Server{
             while (true) {
                 Socket clienteS = serverS.accept();
                 hiloCliente hiloCliente = new hiloCliente(clienteS);
-                clientes.add(hiloCliente);
                 new Thread(hiloCliente).start();
+                clientes.add(hiloCliente);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -52,12 +61,33 @@ public class Server{
             try {
                 while (true) {
                     String msg = reader.readLine();
-                    System.out.println(msg);
                     if (msg == null) {
                         break;
-                    }
-                    else
+                    }else{
+                        if(msg.contains("user")){
+                            boolean accion = false;
+                            String[] partes = msg.split(":");
+                            if(partes[0].equals("duser")){
+                                conectedUsers.remove(partes[1]);
+                                accion= true;
+                            }else if(partes[0].equals("cuser")){
+                                conectedUsers.add(partes[1]);
+                                accion= true;
+                            }
+
+                            if(accion){
+                                msg = "cu|";
+                                for(String u : conectedUsers){
+                                    System.out.println(u);
+                                    msg += u + ":";
+                                }
+                                difundirMensaje(msg);
+                            }
+                        }
                         difundirMensaje(msg);
+                        System.out.println(msg);
+                    }
+
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -80,6 +110,7 @@ public class Server{
 
     private void difundirMensaje(String msg) {
 
+        System.out.println(clientes.size());
         for (hiloCliente c : clientes) {
             c.mandarMensaje(msg);
         }

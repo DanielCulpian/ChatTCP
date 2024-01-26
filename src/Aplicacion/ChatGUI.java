@@ -25,12 +25,27 @@ public class ChatGUI extends JFrame {
     private JScrollPane chatScrollPane;
     private JScrollPane chatScrollPanel;
     private String user;
-    private PrintWriter out;
+    private PrintWriter salida;
+    private BufferedReader entrada;
+
     private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 12345;
 
     private List<String> conectedUsers = new LinkedList<>();
     private Vector<String> ve;
+
+    /**
+     *
+     * @param user El nombre del usuario propietario del chat<br/><br/>
+     *
+     * <b>Explicacion: <b/> El formulario recibe como parametro el nombre del usuario. Una vez se construye el formulario,
+     *             este, enviara su nombre al servidor indicando asi que se ha conectado exitosamente.<br/>Recibe como String
+     *             tanto los mensajes de chat como las actualizaciones de conexion y desconexion de usuarios (ver el filtro usado
+     *             tanto en el servidor como aqui).<br/><br/>
+     *
+     * <b>Finalizacion: </b> Manda un mensaje de desconexion al servidor indicando el nombre de usuario, el servidor se encargara
+     *             de notificar a todos los clientes vivos.
+     */
 
 
     public ChatGUI(String user){
@@ -53,27 +68,17 @@ public class ChatGUI extends JFrame {
 
         try {
             Socket socket = new Socket(SERVER_IP, SERVER_PORT);
-            out = new PrintWriter(socket.getOutputStream(), true);
-
+            salida = new PrintWriter(socket.getOutputStream(), true);
+            entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             conectarThis("c");
 
-
             new Thread(() -> {
-                try {
-                    BufferedReader entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                try{
                     String linea;
-                    if(entrada.ready()){
                         while ((linea = entrada.readLine()) != null) {
-                            System.out.println(linea);
-                            if(linea.contains("user")){
-                                String[] partes = linea.split(":");
-                                if(linea.contains("duser")){
-                                    conectedUsers.remove(partes[1]);
-                                }else if(linea.contains("cuser")){
-                                    conectedUsers.add(partes[1]);
-                                }else{
-                                    chatArea.append(linea + "\n");
-                                }
+                            if(linea.contains("cu|")){
+                                linea = linea.substring(3);
+                                conectedUsers = List.of(linea.split(":"));
                                 ve  = new Vector<>(conectedUsers);
                                 userList.setListData(ve);
                             }else{
@@ -81,7 +86,7 @@ public class ChatGUI extends JFrame {
                             }
 
                         }
-                    }
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -97,15 +102,14 @@ public class ChatGUI extends JFrame {
     private void mandarMensaje() {
         String msg = this.textBox.getText();
         if (!msg.isEmpty() && !msg.isBlank()) {
-            out.println("-" + user + ": " + msg);
+            salida.println("-" + user + ": " + msg);
             this.textBox.setText("");
         }
     }
 
     private void conectarThis(String tipo) {
         if (!user.isEmpty() && !user.isBlank()) {
-            out.println(tipo+"user:"+user);
-            System.out.println(tipo+"user:"+user);
+            salida.println(tipo+"user:"+user);
         }
     }
 

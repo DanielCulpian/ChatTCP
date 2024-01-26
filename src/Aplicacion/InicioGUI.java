@@ -2,6 +2,13 @@ package Aplicacion;
 
 import javax.swing.*;
 import java.awt.*;
+
+/**
+ * <b>Explicacion: </b> Aqui podemos ver el codigo de la ventana emergente que se genera para pedir
+ * el nombre del usuario que entra al chat.<br/><br/>
+ * <b>Finalizacion: </b> Al terminar, abre un nuevo chat, pasandole como argumento el nombre del
+ * usuario conectado
+ */
 public class InicioGUI {
     private static String nombre;
     public static void main(String[] args) {
