@@ -124,6 +124,7 @@ public class Server{
             }
         }
 
+
         if(numUsrMismoNombre == 0){
             return nombreIntento;
         }else{
