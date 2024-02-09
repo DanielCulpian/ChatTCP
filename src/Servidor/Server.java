@@ -71,7 +71,7 @@ public class Server{
                                 conectedUsers.remove(partes[1]);
                                 accion= true;
                             }else if(partes[0].equals("cuser")){
-                                conectedUsers.add(partes[1]);
+                                conectedUsers.add(setNombre(partes[1]));
                                 accion= true;
                             }
 
@@ -113,6 +113,21 @@ public class Server{
         System.out.println(clientes.size());
         for (hiloCliente c : clientes) {
             c.mandarMensaje(msg);
+        }
+    }
+
+    private String setNombre(String nombreIntento){
+        int numUsrMismoNombre = 0;
+        for(String n:conectedUsers){
+            if(n.toLowerCase().contains(nombreIntento.toLowerCase())){
+                numUsrMismoNombre++;
+            }
+        }
+
+        if(numUsrMismoNombre == 0){
+            return nombreIntento;
+        }else{
+            return nombreIntento + "_" + numUsrMismoNombre;
         }
     }
 
