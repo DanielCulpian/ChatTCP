@@ -78,14 +78,12 @@ public class Server{
                             if(accion){
                                 msg = "cu|";
                                 for(String u : conectedUsers){
-                                    System.out.println(u);
                                     msg += u + ":";
                                 }
                                 difundirMensaje(msg);
                             }
                         }
                         difundirMensaje(msg);
-                        System.out.println(msg);
                     }
 
                 }
@@ -110,7 +108,6 @@ public class Server{
 
     private void difundirMensaje(String msg) {
 
-        System.out.println(clientes.size());
         for (hiloCliente c : clientes) {
             c.mandarMensaje(msg);
         }
@@ -120,10 +117,11 @@ public class Server{
         int numUsrMismoNombre = 0;
         for(String n:conectedUsers){
             if(n.toLowerCase().contains(nombreIntento.toLowerCase())){
-                numUsrMismoNombre++;
+                if(n.toLowerCase().substring(0, nombreIntento.length()).equals(nombreIntento.toLowerCase())){
+                    numUsrMismoNombre++;
+                }
             }
         }
-
 
         if(numUsrMismoNombre == 0){
             return nombreIntento;

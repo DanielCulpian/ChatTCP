@@ -3,14 +3,13 @@ package Aplicacion;
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Vector;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ChatGUI extends JFrame {
     private JPanel mainPanel;
@@ -24,14 +23,16 @@ public class ChatGUI extends JFrame {
     private JList userList;
     private JScrollPane chatScrollPane;
     private JScrollPane chatScrollPanel;
+    private final Lock userLock = new ReentrantLock();
     private String user;
     private PrintWriter salida;
     private BufferedReader entrada;
 
     private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 12345;
-
+    private boolean usuarioVerificado = false;
     private List<String> conectedUsers = new LinkedList<>();
+
     private Vector<String> ve;
 
     /**
@@ -72,24 +73,32 @@ public class ChatGUI extends JFrame {
             entrada = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             conectarThis("c");
 
+
             new Thread(() -> {
-                try{
-                    String linea;
+                    try {
+                        String linea;
                         while ((linea = entrada.readLine()) != null) {
-                            if(linea.contains("cu|")){
+                            if (linea.contains("cu|")) {
                                 linea = linea.substring(3);
                                 conectedUsers = List.of(linea.split(":"));
-                                ve  = new Vector<>(conectedUsers);
+
+                                if(!usuarioVerificado){
+                                    if(!conectedUsers.get(conectedUsers.size()-1).equals(this.user))
+                                        setUser(conectedUsers.get(conectedUsers.size()-1));
+
+                                    this.usuarioVerificado = true;
+                                }
+
+                                ve = new Vector<>(conectedUsers);
                                 userList.setListData(ve);
-                            }else{
+                            } else {
                                 chatArea.append(linea + "\n");
                             }
-
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
 
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
             }).start();
 
         } catch (IOException e) {
@@ -102,6 +111,7 @@ public class ChatGUI extends JFrame {
     private void mandarMensaje() {
         String msg = this.textBox.getText();
         if (!msg.isEmpty() && !msg.isBlank()) {
+
             salida.println("-" + user + ": " + msg);
             this.textBox.setText("");
         }
@@ -119,5 +129,15 @@ public class ChatGUI extends JFrame {
 
         super.dispose();
         System.exit(0);
+    }
+
+    private synchronized void setUser(String newName){
+        userLock.lock();
+        try {
+            this.user = newName;
+            setTitle("Chat: " + newName);
+        } finally {
+            userLock.unlock();
+        }
     }
 }
