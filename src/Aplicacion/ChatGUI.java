@@ -22,8 +22,7 @@ public class ChatGUI extends JFrame {
     private JTextArea chatArea;
     private JList userList;
     private JScrollPane chatScrollPane;
-    private JScrollPane chatScrollPanel;
-    private final Lock userLock = new ReentrantLock();
+    private final Lock USERLOCK = new ReentrantLock();
     private String user;
     private PrintWriter salida;
     private BufferedReader entrada;
@@ -132,12 +131,12 @@ public class ChatGUI extends JFrame {
     }
 
     private synchronized void setUser(String newName){
-        userLock.lock();
+        USERLOCK.lock();
         try {
             this.user = newName;
             setTitle("Chat: " + newName);
         } finally {
-            userLock.unlock();
+            USERLOCK.unlock();
         }
     }
 }
